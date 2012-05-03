@@ -12,16 +12,29 @@ ifeq "$(OSTYPE)" "Darwin"
 	LDFLAGS = -framework OpenGL -framework GLUT
 endif
 
-all: build/helloworld.o
+all: helloworld
+
+helloworld:	build/helloworld.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o bin/helloworld build/helloworld.o
+
+helloopengl: build/helloopengl.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -o bin/helloopengl build/helloopengl.o
 
 build/helloworld.cpp:
 	mkdir -p build bin
 	literati tangle src/helloworld.cpp.lit
 	mv output/src/helloworld.cpp build/.
 
+build/helloopengl.cpp:
+	mkdir -p build bin
+	literati tangle src/helloopengl.cpp.lit
+	mv output/src/helloopengl.cpp build/.
+
 build/helloworld.o: build/helloworld.cpp
 	$(CC) $(CFLAGS) -c -o build/helloworld.o build/helloworld.cpp
+
+build/helloopengl.o: build/helloopengl.cpp
+	$(CC) $(CFLAGS) -c -o build/helloopengl.o build/helloopengl.cpp
 
 clean:
 	rm -Rf output
