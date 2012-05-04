@@ -11,32 +11,33 @@ LDFLAGS = -lGL -lGLU -lglut
 ifeq "$(OSTYPE)" "Darwin"
 	LDFLAGS = -framework OpenGL -framework GLUT
 endif
+# Pass compiler preprocessor variables in
+#-DFREEGLUT FREEGLUT # gcc
+#/DFREEGLUT FREEGLUT # windows
+EXECUTABLES = helloworld helloopengl chapter01
+TARGETS = 
 
-all: helloworld
+.PHONY: all
+.DEFAULT: all
 
-helloworld:	build/helloworld.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o bin/helloworld build/helloworld.o
+all: $(EXECUTABLES)
 
-helloopengl: build/helloopengl.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o bin/helloopengl build/helloopengl.o
+helloworld:	helloworld.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -o bin/$@ build/$<
 
-build/helloworld.cpp:
+helloopengl:	helloopengl.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -o bin/$@ build/$<
+
+chapter01:	chapter01.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -o bin/$@ build/$<
+
+%.cpp:
 	mkdir -p build bin
-	literati tangle src/helloworld.cpp.lit
-	mv output/src/helloworld.cpp build/.
+	literati tangle -o build/. src/$@.lit
 
-build/helloopengl.cpp:
-	mkdir -p build bin
-	literati tangle src/helloopengl.cpp.lit
-	mv output/src/helloopengl.cpp build/.
-
-build/helloworld.o: build/helloworld.cpp
-	$(CC) $(CFLAGS) -c -o build/helloworld.o build/helloworld.cpp
-
-build/helloopengl.o: build/helloopengl.cpp
-	$(CC) $(CFLAGS) -c -o build/helloopengl.o build/helloopengl.cpp
+%.o: %.cpp
+	$(CC) $(CFLAGS) -c -o build/$@ build/$<
 
 clean:
-	rm -Rf output
 	rm -Rf build
 	rm -Rf bin
