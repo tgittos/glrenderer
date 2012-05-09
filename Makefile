@@ -6,16 +6,15 @@ endif
 CC = g++
 CFLAGS = -Wall -g
 # Linux flags
-LDFLAGS = -lGL -lGLU -lglut
+LDFLAGS = -Ilib -lGL -lGLU -lglut -lGLEW
 # Override if we're in OS X
 ifeq "$(OSTYPE)" "Darwin"
-	LDFLAGS = -framework OpenGL -framework GLUT
+	LDFLAGS = -framework OpenGL -framework GLUT -lGLEW
 endif
 # Pass compiler preprocessor variables in
 #-DFREEGLUT FREEGLUT # gcc
 #/DFREEGLUT FREEGLUT # windows
 EXECUTABLES = helloworld helloopengl chapter01
-TARGETS = 
 
 .PHONY: all
 .DEFAULT: all

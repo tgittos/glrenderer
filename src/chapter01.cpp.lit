@@ -91,9 +91,46 @@ if(WindowHandle < 1) {
 If everything went smoothly so far, we are now ready to set function callbacks.
 We call want GLUT to call ResizeFunction when the window is resized, and
 RenderFunction when GLUT wants to render the contents of the back buffer.
+Note at the bottom, a reference to an FPS meter. We'll cover that later.
 -
 glutReshapeFunc(ResizeFunction);
 glutDisplayFunc(RenderFunction);
+FPS meter event handlers.
+-
+
+== Resize event handler ==
+When the window is resized by the user, store the new width and
+height, then redraw the viewport.
+We redraw the viewport to make sure that OpenGL doesn't draw outside
+of the viewable window, which would be a waste of compute time.
+-
+void ResizeFunction(int Width, int Height)
+{
+  CurrentWidth = Width;
+  CurrentHeight = Height;
+  glViewport(0, 0, CurrentWidth, CurrentHeight);
+}
+-
+
+== Render event handler ==
+Before we render anything, first we should clear the buffers and set
+all the pixel to the same color.
+Earlier when initializing the window, we set the clear color. This is
+the color that glClear uses. Here, we're clearing the render back buffer
+(GL_COLOR_BUFFER_BIT) and the depth buffer (GL_DEPTH_BUFFER_BIT).
+
+Right now, we're not rendering anything, so we just swap buffers.
+
+Again, notice the reference to the FPS meter. We'll cover that in a bit.
+-
+void RenderFunction(void)
+{
+  FPS meter increment during render.
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glutSwapBuffers();
+  glutPostRedisplay();
+}
 -
 
 == Window initialization function ==
@@ -127,36 +164,91 @@ together, we can start the GLUT main loop.
 glutMainLoop();
 -
 
-== Resize event handler ==
-When the window is resized by the user, store the new width and
-height, then redraw the viewport.
-We redraw the viewport to make sure that OpenGL doesn't draw outside
-of the viewable window, which would be a waste of compute time.
+== Inserting a FPS Meter ==
+In order to measure how well future rendering is happening, we can use an FPS
+meter to track how many frames are rendered per second. We are going to display
+this as part of the title of the window.
+
+First, we need to set up GLEW so that we can use it.
+
+== GLEW initialization ==
+GLEW is a library that contains functionality to interface with newer versions
+of OpenGL.
+Before we can use GLEW, we need to initialize it. However, initialization of
+GLEW requires an active OpenGL context, so that it can query the context for
+the functionality it supports. This means that we need to ensure we call do this
+after we've initialized the window.
+If we can't initalize GLEW, we print some info that will hopefully tell us why,
+and quit the program.
 -
-void ResizeFunction(int Width, int Height)
-{
-  CurrentWidth = Width;
-  CurrentHeight = Height;
-  glViewport(0, 0, CurrentWidth, CurrentHeight);
+GLenum GlewInitResult = glewInit();
+
+if (GLEW_OK != GlewInitResult) {
+  fprintf(
+    stderr,
+    "ERROR: %s\n",
+    glewGetErrorString(GlewInitResult)
+  );
+  exit(EXIT_FAILURE);
 }
 -
 
-== Render event handler ==
-Before we render anything, first we should clear the buffers and set
-all the pixel to the same color.
-Earlier when initializing the window, we set the clear color. This is
-the color that glClear uses. Here, we're clearing the render back buffer
-(GL_COLOR_BUFFER_BIT) and the depth buffer (GL_DEPTH_BUFFER_BIT).
-
-Right now, we're not rendering anything, so we just swap buffers.
+== FPS meter global ==
 -
-void RenderFunction(void)
-{
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+unsigned FrameCount = 0;
+-
 
-  glutSwapBuffers();
-  glutPostRedisplay();
+== FPS meter forward declarations ==
+-
+void TimerFunction(int);
+void IdleFunction(void);
+-
+
+== FPS meter increment during render ==
+Increment the frames rendered during the render method.
+-
+++FrameCount;
+-
+
+== FPS meter idle function ==
+-
+void IdleFunction(void)
+{
+    glutPostRedisplay();
 }
+-
+
+== FPS meter timer function ==
+-
+void TimerFunction(int Value)
+{
+    if (0 != Value) {
+        char* TempString = (char*)
+            malloc(512 + strlen(WINDOW_TITLE_PREFIX));
+ 
+        sprintf(
+            TempString,
+            "%s: %d Frames Per Second @ %d x %d",
+            WINDOW_TITLE_PREFIX,
+            FrameCount * 4,
+            CurrentWidth,
+            CurrentHeight
+        );
+ 
+        glutSetWindowTitle(TempString);
+        free(TempString);
+    }
+ 
+    FrameCount = 0;
+    glutTimerFunc(250, TimerFunction, 1);
+}
+-
+
+== FPS meter event handlers ==
+These are inserted into the program during the OpenGL window initialization above.
+-
+glutIdleFunc(IdleFunction);
+glutTimerFunc(0, TimerFunction, 0);
 -
 
 == Initialize ==
@@ -167,6 +259,8 @@ black.
 void Initialize(int argc, char* argv[])
 {
   InitWindow(argc, argv);
+
+  GLEW initialization.
 
   fprintf(
     stdout,
@@ -205,6 +299,7 @@ Define preprocessor variables we're going to use.
 int CurrentWidth = 800,
   CurrentHeight = 600,
   WindowHandle = 0;
+FPS meter global.
 -
 
 == Forward declarations ==
@@ -213,6 +308,7 @@ void Initialize(int, char*[]);
 void InitWindow(int, char*[]);
 void ResizeFunction(int, int);
 void RenderFunction(void);
+FPS meter forward declarations.
 -
 
 == Boilerplate ==
@@ -244,6 +340,10 @@ Window initialization function.
 Resize event handler.
 
 Render event handler.
+
+FPS meter idle function.
+
+FPS meter timer function.
 -
 
 == @chapter01.cpp ==
