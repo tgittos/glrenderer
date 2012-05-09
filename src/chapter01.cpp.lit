@@ -18,48 +18,105 @@ our OpenGL calls.
 GLUT is a library that abstracts the OS level opening of a window
 and insertion of an OpenGL context, so we're going to leverage GLUT.
 
-The original tutorial used freeglut, however this code is originally
+The original tutorial used FreeGLUT, however this code is originally
 written on OS X, which natively has it's own GLUT library, so we'll
 use that.
 
-If we are using freeglut, we ask for a forward-compatible OpenGL 4.0
-core-profile context. If we're not using freeglut, we will just take
+== Get the context ==
+If we are using FreeGLUT, we ask for a forward-compatible OpenGL 4.0
+core-profile context. If we're not using FreeGLUT, we will just take
 whatever we're given.
+-
+glutInitContextVersion(4, 0);
+glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
+glutInitContextProfile(GLUT_CORE_PROFILE);
+-
 
-Then we set the size and modes, and wire up a few event handlers for
-GLUT events - resizing and showing the window.
+== Set the context options ==
+Next, we try and set a FreeGLUT specific option:
+
+GLUT_ACTION_ON_WINDOW_CLOSE - this ensures that FreeGLUT returns to
+the method that started glutMainLoop instead of exiting the entire
+program, as is the default behavior of GLUT.
+This means that any memory allocated outside the glutMainLoop would
+get the chance to be freed before program exit, ensuring no memory leaks.
+This is enabled by setting this option to GLUT_ACTION_GLUTMAINLOOP_RETURNS.
+
+With this in mind, it might be a good idea to disable this.
+-
+glutSetOption(
+  GLUT_ACTION_ON_WINDOW_CLOSE,
+  GLUT_ACTION_GLUTMAINLOOP_RETURNS
+);
+-
+
+== Set OpenGL display modes ==
+The display modes determine how the OpenGL context we create behaves
+and how our graphics are rendered. The details for these options are
+as follows:
+
+GLUT_DEPTH - this ensures OpenGL is using the depth buffer or Z-buffer.
+The depth buffer contains the floating point Z-depth information for
+each pixel rendered. It's used to ensure object ordering and that objects
+don't overlap objects that are closer to the screen.
+
+GLUT_DOUBLE - double buffering. Graphics are drawn off screen into a
+back buffer, which is switch with the current screen contents, called the
+front buffer. The buffer that is rendered to screen is called the front
+buffer, and the buffer that is being rendered into is called the back buffer.
+When the swap happens, the buffer definitions change.
+
+GLUT_RGBA - colours are defined with RGB and alpha values.
+-
+glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+-
+
+== Create the window ==
+Next we create the window, and set the title to the WINDOW_TITLE_PREFIX.
+The return value is checked to ensure GLUT creted a window correctly.
+If not, print to stderr an error message.
+-
+WindowHandle = glutCreateWindow(WINDOW_TITLE_PREFIX);
+
+if(WindowHandle < 1) {
+  fprintf(
+    stderr,
+    "ERROR: Could not create a new rendering window.\n"
+  );
+  exit(EXIT_FAILURE);
+}
+-
+
+== Set function callbacks ==
+If everything went smoothly so far, we are now ready to set function callbacks.
+We call want GLUT to call ResizeFunction when the window is resized, and
+RenderFunction when GLUT wants to render the contents of the back buffer.
+-
+glutReshapeFunc(ResizeFunction);
+glutDisplayFunc(RenderFunction);
+-
+
+== Window initialization function ==
+Here you can see how the function works as a whole, using the parts described
+above.
 -
 void InitWindow(int argc, char* argv[])
 {
   glutInit(&argc, argv);
 
 #if defined(FREEGLUT)
-  glutInitContextVersion(4, 0);
-  glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
-  glutInitContextProfile(GLUT_CORE_PROFILE);
+  Get the context.
 
-  glutSetOption(
-    GLUT_ACTION_ON_WINDOW_CLOSE,
-    GLUT_ACTION_GLUTMAINLOOP_RETURNS
-  );
+  Set the context options.
 #endif
 
   glutInitWindowSize(CurrentWidth, CurrentHeight);
 
-  glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+  Set OpenGL display modes.
 
-  WindowHandle = glutCreateWindow(WINDOW_TITLE_PREFIX);
+  Create the window.
 
-  if(WindowHandle < 1) {
-    fprintf(
-      stderr,
-      "ERROR: Could not create a new rendering window.\n"
-    );
-    exit(EXIT_FAILURE);
-  }
-
-  glutReshapeFunc(ResizeFunction);
-  glutDisplayFunc(RenderFunction);
+  Set function callbacks.
 }
 -
 
@@ -73,6 +130,8 @@ glutMainLoop();
 == Resize event handler ==
 When the window is resized by the user, store the new width and
 height, then redraw the viewport.
+We redraw the viewport to make sure that OpenGL doesn't draw outside
+of the viewable window, which would be a waste of compute time.
 -
 void ResizeFunction(int Width, int Height)
 {
@@ -83,8 +142,13 @@ void ResizeFunction(int Width, int Height)
 -
 
 == Render event handler ==
-Right now, we're not rendering anything. We just clear the
-buffer then swap.
+Before we render anything, first we should clear the buffers and set
+all the pixel to the same color.
+Earlier when initializing the window, we set the clear color. This is
+the color that glClear uses. Here, we're clearing the render back buffer
+(GL_COLOR_BUFFER_BIT) and the depth buffer (GL_DEPTH_BUFFER_BIT).
+
+Right now, we're not rendering anything, so we just swap buffers.
 -
 void RenderFunction(void)
 {
