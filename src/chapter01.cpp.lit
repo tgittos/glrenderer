@@ -27,7 +27,7 @@ If we are using FreeGLUT, we ask for a forward-compatible OpenGL 4.0
 core-profile context. If we're not using FreeGLUT, we will just take
 whatever we're given.
 -
-glutInitContextVersion(4, 0);
+glutInitContextVersion(3, 3);
 glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
 glutInitContextProfile(GLUT_CORE_PROFILE);
 -
@@ -313,7 +313,13 @@ IO for debugging.
 Include the necessary to get OpenGL working.
 -
 #include <GL/glew.h>
+#if defined(__APPLE__) && defined(__MACH__)
 #include <GLUT/glut.h>
+#else
+#include <GL/freeglut.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
 -
 
 == Preprocessor variables ==

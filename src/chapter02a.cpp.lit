@@ -28,7 +28,7 @@ If we are using FreeGLUT, we ask for a forward-compatible OpenGL 4.0
 core-profile context. If we're not using FreeGLUT, we will just take
 whatever we're given.
 -
-glutInitContextVersion(4, 0);
+glutInitContextVersion(3, 3);
 glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
 glutInitContextProfile(GLUT_CORE_PROFILE);
 -
@@ -185,6 +185,7 @@ after we've initialized the window.
 If we can't initalize GLEW, we print some info that will hopefully tell us why,
 and quit the program.
 -
+glewExperimental = GL_TRUE;
 GLenum GlewInitResult = glewInit();
 
 if (GLEW_OK != GlewInitResult) {
@@ -299,7 +300,7 @@ GLuint
 -
 const GLchar* VertexShader =
 {
-  "#version 400\n"\
+  "#version 330\n"\
 
   "layout(location=0) in vec4 in_Position;\n"\
   "layout(location=1) in vec4 in_Color;\n"\
@@ -317,7 +318,7 @@ const GLchar* VertexShader =
 -
 const GLchar* FragmentShader =
 {
-  "#version 400\n"\
+  "#version 330\n"\
 
   "in vec4 ex_Color;\n"\
   "out vec4 out_Color;\n"\
@@ -544,7 +545,13 @@ IO for debugging.
 Include the necessary to get OpenGL working.
 -
 #include <GL/glew.h>
+#if defined(__APPLE__) && defined(__MACH__)
 #include <GLUT/glut.h>
+#else
+#include <GL/freeglut.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
 -
 
 == Preprocessor variables ==

@@ -22,16 +22,16 @@ EXECUTABLES = helloworld helloopengl chapter01 chapter02a
 all: $(EXECUTABLES)
 
 helloworld:	helloworld.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o bin/$@ build/$<
+	$(CC) build/$< $(LDFLAGS) $(CFLAGS) -o bin/$@
 
 helloopengl:	helloopengl.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o bin/$@ build/$<
+	$(CC) build/$< $(LDFLAGS) $(CFLAGS) -o bin/$@
 
 chapter01:	chapter01.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o bin/$@ build/$<
+	$(CC) build/$< $(LDFLAGS) $(CFLAGS) -o bin/$@
 
 chapter02a: chapter02a.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o bin/$@ build/$<
+	$(CC) build/$< $(LDFLAGS) $(CFLAGS) -o bin/$@
 
 %.cpp:
 	mkdir -p build bin
