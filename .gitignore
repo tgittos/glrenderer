@@ -1,4 +1,19 @@
+<<<<<<< HEAD
 .rbenv-version
 build
 bin
 lib
+=======
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+>>>>>>> 5b82a0e21a1be7f155c8ccd24c8fa0a644c553ee
