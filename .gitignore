@@ -14,3 +14,12 @@ lib
 *.lai
 *.la
 *.a
+
+# Visual Studio 2010 nonsense
+*.sdf
+ipch
+*.suo
+Debug
+Release
+*.user
+*.filters
