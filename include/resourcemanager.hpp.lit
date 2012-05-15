@@ -1,0 +1,5 @@
+== Resource Manager Header ==
+
+Because this is a template file, it needs to live entirely in the header.
+
+== @resourcemanager.hpp ==
