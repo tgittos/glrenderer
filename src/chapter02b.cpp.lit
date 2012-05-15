@@ -1,9 +1,9 @@
-== Chapter 2a ==
+== Chapter 2b ==
 This is chapter 2 of the online OpenGL book: 
 http://openglbook.com/the-book/chapter-2-vertices-and-shapes/
 
 This program will open a window with an OpenGL context, and
-draw a triangle to the screen using a vertex buffer object
+draw a rectangle to the screen using a vertex buffer object
 (VBO)
 
 == Window initialization ==
@@ -876,5 +876,5 @@ Shader setup function.
 Shader destruction function.
 -
 
-== @chapter02a.cpp ==
+== @chapter02b.cpp ==
 Boilerplate.
