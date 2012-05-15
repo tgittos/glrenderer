@@ -5,7 +5,7 @@ http://openglbook.com/the-book/chapter-1-getting-started/
 This program will simply open a blank window that we can
 resize, and print out information about OpenGL to the console.
 
-== Window initialization function ==
+== Window initialization ==
 First thing to do is to create and initialize the window that
 is going to hold our OpenGL context.
 
