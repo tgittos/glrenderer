@@ -12,6 +12,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\build\chapter02a.cpp" />
+    <ClCompile Include="..\..\build\chapter02b.cpp" />
+    <ClCompile Include="..\..\build\chapter02c.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5B716DE0-AAB7-4EC8-850D-B0A3F69BDC40}</ProjectGuid>

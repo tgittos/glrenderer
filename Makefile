@@ -14,12 +14,16 @@ endif
 # Pass compiler preprocessor variables in
 #-DFREEGLUT FREEGLUT # gcc
 #/DFREEGLUT FREEGLUT # windows
-EXECUTABLES = helloworld helloopengl chapter01 chapter02a chapter02b
+EXECUTABLES = helloworld helloopengl chapter01 chapter02a chapter02b chapter02c
 
 .PHONY: all
 .DEFAULT: all
 
 all: $(EXECUTABLES)
+
+clean:
+	rm -Rf build
+	rm -Rf bin
 
 %: %.o
 	$(CC) build/$< $(LDFLAGS) $(CFLAGS) -o bin/$@
@@ -30,7 +34,3 @@ all: $(EXECUTABLES)
 
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c -o build/$@ build/$<
-
-clean:
-	rm -Rf build
-	rm -Rf bin

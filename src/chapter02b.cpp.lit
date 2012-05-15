@@ -130,7 +130,7 @@ void RenderFunction(void)
   FPS meter increment during render.
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  Draw the triangle.
+  Draw the square.
 
   glutSwapBuffers();
   glutPostRedisplay();
@@ -419,15 +419,18 @@ the program after writing a debug string.
 void CreateVBO(void)
 {
   GLfloat Vertices[] = {
+    -0.8f,  0.8f, 0.0f, 1.0f,
+     0.8f,  0.8f, 0.0f, 1.0f,
     -0.8f, -0.8f, 0.0f, 1.0f,
-     0.0f,  0.8f, 0.0f, 1.0f,
      0.8f, -0.8f, 0.0f, 1.0f
   };
 
   GLfloat Colors[] = {
     1.0f, 0.0f, 0.0f, 1.0f,
     0.0f, 1.0f, 0.0f, 1.0f,
-    0.0f, 0.0f, 1.0f, 1.0f
+    0.0f, 0.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f, 1.0f
+
   };
 
   GLenum ErrorCheckValue = glGetError();
@@ -631,7 +634,7 @@ void CreateShaders(void)
 }
 -
 
-== Draw the triangle ==
+== Draw the square ==
 Finally, after all that setup, we get to draw the contents of the VBO.
 Remember back when we discussed creating the VBO, we mentioned enabling
 attributes. glDrawAttributes operates on the vertex attribute arrays that are
@@ -643,13 +646,19 @@ The parameters to glDrawArrays are as follows:
 * first - The first index of the enabled vertex attribute array.
 * count - The number of enabled indicies to draw.
 
+As you can see in this example, we're drawing with GL_TRIANGLE_STRIP mode,
+instead of GL_TRIANGLES. This enables us to reuse vertices, and OpenGL
+will draw multiple triangles connected together.
+Below is a good diagram of how GL_TRIANGLE_STRIP works.
+http://content3.openglbook.com/wp-content/uploads/2011/04/4262_02_06.png
+
 Ideally, when we set up the vertex buffer, we'd also have set up an index
 buffer. This allows you to reuse vertices to draw multiple objects, which
 will be used whenever you draw a complex object. 
 This is what the first and count parameters refer to.
 We'll cover index buffers later.
 -
-glDrawArrays(GL_TRIANGLES, 0, 3);
+glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 -
 
 == The close function ==
