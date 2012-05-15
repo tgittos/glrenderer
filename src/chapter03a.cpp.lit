@@ -1,0 +1,16 @@
+== Chapter 3a ==
+This is chapter 3 of the online OpenGL book: 
+http://openglbook.com/the-book/chapter-3-index-buffer-objects-and-primitive-types/
+
+This program will open a window with an OpenGL context, and
+draw a complex object using Index Buffer Objects (IBO)
+
+== Preprocessor variables ==
+Update the title
+-
+#define WINDOW_TITLE_PREFIX "Chapter 3"
+-
+
+== @chapter03a.cpp ==
+@inherit chapter02c.cpp.lit
+Boilerplate.

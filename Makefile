@@ -14,7 +14,7 @@ endif
 # Pass compiler preprocessor variables in
 #-DFREEGLUT FREEGLUT # gcc
 #/DFREEGLUT FREEGLUT # windows
-EXECUTABLES = helloworld helloopengl chapter01 chapter02a chapter02b chapter02c
+EXECUTABLES = helloworld helloopengl chapter01 chapter02a chapter02b chapter02c chapter03a
 
 .PHONY: all
 .DEFAULT: all

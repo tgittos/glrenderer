@@ -26,6 +26,10 @@ GLuint
 -
 
 == Vertex buffer object setup function ==
+Instead of using two arrays to store positional and color data
+separately, now we use our custom struct. Here we have a list of
+Vertex objects, each one with 2 arrays - position as the first, and
+color as the second.
 -
 void CreateVBO(void)
 {
@@ -55,7 +59,29 @@ void CreateVBO(void)
 -
 
 == Fill VBO with vertex data ==
+Now that we are using a slightly more complex object to store our data, we
+need to describe to OpenGL how to consume our data.
 
+This time, we're going to create 2 buffers. One to hold the vertex position
+data, one to hold the vertex color data. We store the number of buffers
+needed, and calculate it based on the struct itself.
+Likewise for the size of each vertex, and the offset of the RGB data.
+
+We generate a single buffer, and again, only one VAO.
+
+We bind the VAO and the VBO, and create 2 buffers, with the contents of the
+Verticies object.
+
+We tell the VAO that the first buffer has 4 elements of GL_FLOAT, not to
+normalize it, and that the stride is the number of bytes of each Vertex object, 
+and that it starts at index 0.
+
+We then tell the VAO that the second buffer has 4 elements of GL_FLOAT,
+not to normalize it, that the stride is the number of bytes of each Vertex
+object, and that each object is offset by the number of bytes in the positional
+attribute of the Vertex.
+
+Then we enable both attributes.
 -
 const size_t BufferSize = sizeof(Vertices);
 const size_t VertexSize = sizeof(Vertices[0]);
