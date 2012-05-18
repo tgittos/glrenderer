@@ -5,10 +5,263 @@ http://openglbook.com/the-book/chapter-3-index-buffer-objects-and-primitive-type
 This program will open a window with an OpenGL context, and
 draw a complex object using Index Buffer Objects (IBO)
 
+== Efficiently drawing a complex object ==
+Consider the object in the following image:
+http://content1.openglbook.com/wp-content/uploads/2011/04/C3I1.png
+There are 17 distinct vertices, drawing out 16 distinct triangles.
+Lets take a look at how we could draw this shape.
+
+== Using GL_TRIANGLES ==
+At the start of chapter 2, we began drawing triangles with the GL_TRIANGLES
+primitive type. In this mode, we had to describe each triangle separately.
+For the above example, this means we'd have to draw 16 triangles, using 48
+vertices, even though there are only 17 distinct vertices.
+This is because the vertex P0 is used in 8 triangles, and needs to be declared
+8 times. Save with P3, P7, P11 and P15, who are each used in 4 triangles,
+thus needing to be declared 4 times.
+The total amount of data sent to the GPU using this method is:
+(size of Vertex) 32 bytes * 48 = 1,536 bytes.
+
+== Using GL_TRIANGLE_STRIP ==
+Toward the end of chapter 2, we covered the GL_TRIANGLE_STRIP primitive type,
+which was more efficient. We can describe n triangles for n + 2 vertices.
+However, due to the non-tesselating structure of the shape, we still find we have
+to duplicate vertices, namely P3. Each spoke therefore takes 7 vertices,
+instead of the expected 6.
+This complexity in tesselation is acceptable for this example, however with
+more complex objects, it could get out of hand quickly.
+The total amount of data sent to the GPU using this method is:
+(size of Vertex) 32 bytes * 28 = 896 bytes.
+
+== Index buffers ==
+Index buffers allow us to eliminate vertex duplication entirely, and instead
+declare the shapes we want to draw with another data structure.
+
+Before we get stuck into the details of index buffers, first lets do some
+housekeeping.
+
+== Global variables ==
+Change the width of the window, so that the drawn graphic is symmetrical.
+-
+int CurrentWidth = 600,
+  CurrentHeight = 600,
+  WindowHandle = 0;
+FPS meter global.
+
+Rendering variables.
+
+GLSL vertex shader.
+GLSL fragment shader.
+-
+
+== Rendering variables ==
+Add a new variable to hold a reference to our index buffer
+-
+typedef struct
+{
+  float XYZW[4];
+  float RGBA[4];
+} Vertex;
+
+GLuint
+  VertexShaderId,
+  FragmentShaderId,
+  ProgramId,
+  VaoId,
+  VboId,
+  IndexBufferId;
+-
+
+== Vertex buffer object setup function ==
+As in previous chapters, we create an array of Vertex objects to hold
+our vertices. You can see below that we create 17 vertices - one origin,
+and 4 for each arm of the graphic.
+
+A significant change is the addition of an array of GLubyte objects,
+Indicies. This array describes different trianges, 3 numbers per triangle.
+Each index corresponds to a vertex in the Vertices buffer.
+For example, the first triangle has the 0th, 1st and 3rd vertex.
+
+This allows us to construct multiple triangles that use the same vertex,
+without having to declare that vertex multiple times.
+-
+void CreateVBO(void)
+{
+  Vertex Vertices[] =
+  {
+      { { 0.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+      // Top
+      { { -0.2f, 0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+      { { 0.2f, 0.8f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+      { { 0.0f, 0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+      { { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+      // Bottom
+      { { -0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+      { { 0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+      { { 0.0f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+      { { 0.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+      // Left
+      { { -0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+      { { -0.8f, 0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+      { { -0.8f, 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+      { { -1.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+      // Right
+      { { 0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+      { { 0.8f, 0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+      { { 0.8f, 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+      { { 1.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } }
+  };
+
+  GLubyte Indices[] = {
+      // Top
+      0, 1, 3,
+      0, 3, 2,
+      3, 1, 4,
+      3, 4, 2,
+      // Bottom
+      0, 5, 7,
+      0, 7, 6,
+      7, 5, 8,
+      7, 8, 6,
+      // Left
+      0, 9, 11,
+      0, 11, 10,
+      11, 9, 12,
+      11, 12, 10,
+      // Right
+      0, 13, 15,
+      0, 15, 14,
+      15, 13, 16,
+      15, 16, 14
+  };
+
+  GLenum ErrorCheckValue = glGetError();
+
+  Fill VBO with vertex data.
+
+  ErrorCheckValue = glGetError();
+  if (ErrorCheckValue != GL_NO_ERROR)
+  {
+    fprintf(
+      stderr,
+      "ERROR: Could not create a VBO: %s \n",
+      gluErrorString(ErrorCheckValue)
+    );
+
+    exit(-1);
+  }
+ }
+-
+
+== Fill VBO with vertex data ==
+At the end of this section, we have added code to allocate room on the GPU
+memory for the index buffer, and buffer the index data.
+We're using a new target, GL_ELEMENT_ARRAY_BUFFER, which refers to the data
+in the currently active GL_ARRAY_BUFFER.
+-
+const size_t BufferSize = sizeof(Vertices);
+const size_t VertexSize = sizeof(Vertices[0]);
+const size_t RgbOffset = sizeof(Vertices[0].XYZW);
+
+glGenBuffers(1, &VboId);
+
+glGenVertexArrays(1, &VaoId);
+glBindVertexArray(VaoId);
+
+glBindBuffer(GL_ARRAY_BUFFER, VboId);
+glBufferData(GL_ARRAY_BUFFER, BufferSize, Vertices, GL_STATIC_DRAW);
+
+glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, VertexSize, 0);
+glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, VertexSize, (GLvoid*)RgbOffset);
+
+glEnableVertexAttribArray(0);
+glEnableVertexAttribArray(1);
+
+glGenBuffers(1, &IndexBufferId);
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId);
+glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
+-
+
+== Draw the polygon ==
+Once we have the vertex buffer filled with vertices, and the index
+buffer set up, we need to draw the elements defined in the index
+buffer.
+Whereas before we used the glDrawArrays method, which can only draw GL_TRIANGLES
+or GL_TRIANGLE_STRIP, now we are using the glDrawElements method, which draws
+from the index buffer.
+Here are the parameters to the function:
+* mode - The primitive mode we want to draw the array as
+* count - The number of elements to draw, in this case, 48, because we're
+  drawing 48 vertices.
+* type - The type of the items in the index array, used for caclulating sizes.
+  We use GL_UNSIGNED_BYTE because the array is made of GLubyte data types. This
+  value must reflect the data type used in the index array.
+* indices - The offset in bytes of the index array where we want to start drawing
+-
+glDrawElements(GL_TRIANGLES, 48, GL_UNSIGNED_BYTE, (GLvoid*)0);
+-
+
+== Vertex buffer object destruction function ==
+Now we add some code to delete the index buffer. Remember, before
+we can delete the index buffer, we need to bind it, and we also
+need to delete the buffer before we delete the VAO.
+-
+void DestroyVBO(void)
+{
+  GLenum ErrorCheckValue = glGetError();
+
+  glDisableVertexAttribArray(1);
+  glDisableVertexAttribArray(0);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  glDeleteBuffers(1, &VboId);
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  glDeleteBuffers(1, &IndexBufferId);
+
+  glBindVertexArray(0);
+  glDeleteVertexArrays(1, &VaoId);
+
+  ErrorCheckValue = glGetError();
+  if (ErrorCheckValue != GL_NO_ERROR)
+  {
+    fprintf(
+      stderr,
+      "ERROR: Could not destroy the VBO: %s \n",
+      gluErrorString(ErrorCheckValue)
+    );
+
+    exit(-1);
+  }
+}
+-
+
+== Index buffer performance ==
+The amount of data sent to the GPU in this case is:
+(size of Vertex) 32 bytes * 17 + (size of GLubyte) 1 * 48
+= 592 bytes.
+
 == Preprocessor variables ==
 Update the title
 -
 #define WINDOW_TITLE_PREFIX "Chapter 3"
+-
+
+== Render event handler ==
+Change the reference for drawing from the rectangle method
+to the polygon method
+-
+void RenderFunction(void)
+{
+  FPS meter increment during render.
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  Draw the polygon.
+
+  glutSwapBuffers();
+  glutPostRedisplay();
+}
 -
 
 == @chapter03a.cpp ==

@@ -28,7 +28,8 @@ GLuint
   ProgramId,
   VaoId,
   VboId,
-  IndexBufferId;
+  IndexBufferId[2],
+  ActiveIndexBuffer = 0;
 
 const GLchar* VertexShader =
 {
@@ -68,6 +69,7 @@ void CreateVBO(void);
 void DestroyVBO(void);
 void CreateShaders(void);
 void DestroyShaders(void);
+void KeyboardFunction(unsigned char, int, int);
 
 int main(int argc, char* argv[])
 {
@@ -140,9 +142,7 @@ void InitWindow(int argc, char* argv[])
   glutDisplayFunc(RenderFunction);
   glutIdleFunc(IdleFunction);
   glutTimerFunc(0, TimerFunction, 0);
-  #if defined(FREEGLUT)
-    glutCloseFunc(Cleanup);
-  #endif
+  glutKeyboardFunc(KeyboardFunction);
 }
 
 void ResizeFunction(int Width, int Height)
@@ -157,7 +157,11 @@ void RenderFunction(void)
   ++FrameCount;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glDrawElements(GL_TRIANGLES, 48, GL_UNSIGNED_BYTE, (GLvoid*)0);
+  if (ActiveIndexBuffer == 0) {
+      glDrawElements(GL_TRIANGLES, 48, GL_UNSIGNED_BYTE, NULL);
+  } else {
+      glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, NULL);
+  }
 
   glutSwapBuffers();
   glutPostRedisplay();
@@ -247,6 +251,25 @@ void CreateVBO(void)
       15, 16, 14
   };
 
+  GLubyte AlternateIndices[] = {
+    // Outer square border:
+    3, 4, 16,
+    3, 15, 16,
+    15, 16, 8,
+    15, 7, 8,
+    7, 8, 12,
+    7, 11, 12,
+    11, 12, 4,
+    11, 3, 4,
+
+    // Inner square
+    0, 11, 3,
+    0, 3, 15,
+    0, 15, 7,
+    0, 7, 11
+  };
+
+
   GLenum ErrorCheckValue = glGetError();
 
   const size_t BufferSize = sizeof(Vertices);
@@ -267,9 +290,14 @@ void CreateVBO(void)
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   
-  glGenBuffers(1, &IndexBufferId);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId);
+  glGenBuffers(2, IndexBufferId);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[0]);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
+  
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[1]);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(AlternateIndices), AlternateIndices, GL_STATIC_DRAW);
+  
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[0]);
 
   ErrorCheckValue = glGetError();
   if (ErrorCheckValue != GL_NO_ERROR)
@@ -296,7 +324,7 @@ void DestroyVBO(void)
   glDeleteBuffers(1, &VboId);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  glDeleteBuffers(1, &IndexBufferId);
+  glDeleteBuffers(2, IndexBufferId);
 
   glBindVertexArray(0);
   glDeleteVertexArrays(1, &VaoId);
@@ -370,4 +398,20 @@ void DestroyShaders(void)
 
     exit(-1);
   }
+}
+
+void KeyboardFunction(unsigned char Key, int X, int Y)
+{
+    switch (Key)
+    {
+    case 'T':
+    case 't':
+        {
+            ActiveIndexBuffer = (ActiveIndexBuffer == 1 ? 0 : 1);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[ActiveIndexBuffer]);
+            break;
+        }
+    default:
+        break;
+    }
 }

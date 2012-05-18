@@ -1,0 +1,311 @@
+== Chapter 3b ==
+This is chapter 3 of the online OpenGL book: 
+http://openglbook.com/the-book/chapter-3-index-buffer-objects-and-primitive-types/
+
+This program will open a window with an OpenGL context, and
+draw a complex object using Index Buffer Objects (IBO).
+It will also accept keyboard input and allow you to swap the
+IBO being drawn.
+
+== Swapping index buffers ==
+As you can bind multiple vertex buffers to draw multiple geometry
+(though with this method, you wouldn't want to do that),
+you can also bind multiple index buffers that function on the 
+currently bound vertex buffer.
+
+First, lets get a few bits of housekeeping out of the way.
+
+== Rendering variables ==
+Change the index buffer ID to an array, and have a variable to
+hold the currently active index buffer.
+-
+typedef struct
+{
+  float XYZW[4];
+  float RGBA[4];
+} Vertex;
+
+GLuint
+  VertexShaderId,
+  FragmentShaderId,
+  ProgramId,
+  VaoId,
+  VboId,
+  IndexBufferId[2],
+  ActiveIndexBuffer = 0;
+-
+
+== Vertex buffer object setup function ==
+Firstly, instead of creating a single index buffer object, we are now
+creating 2 index buffer objects, both of which pointing to the same
+vertex array. 
+-
+void CreateVBO(void)
+{
+  Vertex Vertices[] =
+  {
+      { { 0.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+      // Top
+      { { -0.2f, 0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+      { { 0.2f, 0.8f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+      { { 0.0f, 0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+      { { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+      // Bottom
+      { { -0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+      { { 0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+      { { 0.0f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+      { { 0.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+      // Left
+      { { -0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+      { { -0.8f, 0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+      { { -0.8f, 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+      { { -1.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+      // Right
+      { { 0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+      { { 0.8f, 0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+      { { 0.8f, 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+      { { 1.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } }
+  };
+
+  GLubyte Indices[] = {
+      // Top
+      0, 1, 3,
+      0, 3, 2,
+      3, 1, 4,
+      3, 4, 2,
+      // Bottom
+      0, 5, 7,
+      0, 7, 6,
+      7, 5, 8,
+      7, 8, 6,
+      // Left
+      0, 9, 11,
+      0, 11, 10,
+      11, 9, 12,
+      11, 12, 10,
+      // Right
+      0, 13, 15,
+      0, 15, 14,
+      15, 13, 16,
+      15, 16, 14
+  };
+
+  GLubyte AlternateIndices[] = {
+    // Outer square border:
+    3, 4, 16,
+    3, 15, 16,
+    15, 16, 8,
+    15, 7, 8,
+    7, 8, 12,
+    7, 11, 12,
+    11, 12, 4,
+    11, 3, 4,
+ 
+    // Inner square
+    0, 11, 3,
+    0, 3, 15,
+    0, 15, 7,
+    0, 7, 11
+  };
+
+
+  GLenum ErrorCheckValue = glGetError();
+
+  Fill VBO with vertex data.
+
+  ErrorCheckValue = glGetError();
+  if (ErrorCheckValue != GL_NO_ERROR)
+  {
+    fprintf(
+      stderr,
+      "ERROR: Could not create a VBO: %s \n",
+      gluErrorString(ErrorCheckValue)
+    );
+
+    exit(-1);
+  }
+ }
+-
+
+== Fill VBO with vertex data ==
+We fill the second index buffer object with data from the second index
+array, and set the first index buffer to be our currently selected buffer.
+-
+const size_t BufferSize = sizeof(Vertices);
+const size_t VertexSize = sizeof(Vertices[0]);
+const size_t RgbOffset = sizeof(Vertices[0].XYZW);
+
+glGenBuffers(1, &VboId);
+
+glGenVertexArrays(1, &VaoId);
+glBindVertexArray(VaoId);
+
+glBindBuffer(GL_ARRAY_BUFFER, VboId);
+glBufferData(GL_ARRAY_BUFFER, BufferSize, Vertices, GL_STATIC_DRAW);
+
+glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, VertexSize, 0);
+glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, VertexSize, (GLvoid*)RgbOffset);
+
+glEnableVertexAttribArray(0);
+glEnableVertexAttribArray(1);
+
+glGenBuffers(2, IndexBufferId);
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[0]);
+glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
+
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[1]);
+glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(AlternateIndices), AlternateIndices, GL_STATIC_DRAW);
+
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[0]);
+-
+
+== Vertex buffer object destruction function ==
+Destroy both buffers, instead of the one.
+-
+void DestroyVBO(void)
+{
+  GLenum ErrorCheckValue = glGetError();
+
+  glDisableVertexAttribArray(1);
+  glDisableVertexAttribArray(0);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  glDeleteBuffers(1, &VboId);
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  glDeleteBuffers(2, IndexBufferId);
+
+  glBindVertexArray(0);
+  glDeleteVertexArrays(1, &VaoId);
+
+  ErrorCheckValue = glGetError();
+  if (ErrorCheckValue != GL_NO_ERROR)
+  {
+    fprintf(
+      stderr,
+      "ERROR: Could not destroy the VBO: %s \n",
+      gluErrorString(ErrorCheckValue)
+    );
+
+    exit(-1);
+  }
+}
+-
+
+== Keyboard dispatcher ==
+In order to swap between the first and second index buffers, we need
+to recieve input from the user. The keyboard is probably the easiest
+and most straight forward way of getting that input.
+Here is a function we're going to use to read keyboard input through
+FreeGLUT.
+The arguments are as follows:
+* Key - This contains the character representation of the key pressed
+* X - The x location of the mouse pointer relative to the window when
+  the key was pressed
+* Y - The y location of the mouse pointer relative to the window when
+  the key was pressed
+
+Once we get the key, we check if it was a 't' key, and if so, we swap the
+active index, and bind the correct buffer.
+-
+void KeyboardFunction(unsigned char Key, int X, int Y)
+{
+    switch (Key)
+    {
+    case 'T':
+    case 't':
+        {
+            ActiveIndexBuffer = (ActiveIndexBuffer == 1 ? 0 : 1);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[ActiveIndexBuffer]);
+            break;
+        }
+    default:
+        break;
+    }
+}
+-
+
+== Forward declarations ==
+Add the keyboard foward declaration
+-
+void Initialize(int, char*[]);
+void InitWindow(int, char*[]);
+void ResizeFunction(int, int);
+void RenderFunction(void);
+FPS meter forward declarations.
+Rendering forward declarations.
+void KeyboardFunction(unsigned char, int, int);
+-
+
+== Set function callbacks ==
+Add the keyboard event handler.
+-
+glutReshapeFunc(ResizeFunction);
+glutDisplayFunc(RenderFunction);
+FPS meter event handlers.
+glutKeyboardFunc(KeyboardFunction);
+-
+
+== Draw the polygon ==
+Make a different glDrawElements call based on the currently
+active index buffer.
+Things like the offset and the count should be encapsulated into
+a data structure that holds both the IBO itself, and any meta
+data needed for rendering.
+-
+if (ActiveIndexBuffer == 0) {
+    glDrawElements(GL_TRIANGLES, 48, GL_UNSIGNED_BYTE, NULL);
+} else {
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, NULL);
+}
+-
+
+== Boilerplate ==
+Add the keyboard handling function to the boilerplate.
+-
+Standard includes.
+OpenGL includes.
+Preprocessor variables.
+
+Global variables.
+
+Forward declarations.
+
+int main(int argc, char* argv[])
+{
+  Initialize(argc, argv);
+
+  Start GLUT loop.
+
+  exit(EXIT_SUCCESS);
+}
+
+Initialize.
+
+Window initialization function.
+
+Resize event handler.
+
+Render event handler.
+
+FPS meter idle function.
+
+FPS meter timer function.
+
+The close function.
+
+Vertex buffer object setup function.
+
+Vertex buffer object destruction function.
+
+Shader setup function.
+
+Shader destruction function.
+
+Keyboard dispatcher.
+-
+
+== @chapter03b.cpp ==
+@inherit chapter03a.cpp.lit
+Boilerplate.
