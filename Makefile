@@ -19,18 +19,21 @@ EXECUTABLES = helloworld helloopengl chapter01 chapter02a chapter02b chapter02c 
 .PHONY: all
 .DEFAULT: all
 
-all: $(EXECUTABLES)
+all: includes $(EXECUTABLES)
 
 clean:
-	rm -Rf build
+	rm -Rf out
 	rm -Rf bin
 
 %: %.o
-	$(CC) build/$< $(LDFLAGS) $(CFLAGS) -o bin/$@
-
-%.cpp:
-	mkdir -p build bin
-	literati tangle -o build/. src/$@.lit
+	$(CC) out/$< $(LDFLAGS) $(CFLAGS) -o bin/$@
 
 %.o: %.cpp
-	$(CC) $(CFLAGS) -c -o build/$@ build/$<
+	$(CC) $(CFLAGS) -c -o out/$@ src/$<
+
+%.cpp:
+	mkdir -p out bin
+	literati tangle -o src/. lit/src/$@.lit
+
+includes:
+	literati tangle -o include/. lit/include

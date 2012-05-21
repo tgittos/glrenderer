@@ -1,6 +1,9 @@
 .rbenv-version
-bin
 lib
+
+# Build directories
+bin
+out
 
 # Compiled Object files
 *.slo

@@ -7,21 +7,6 @@ high quality open source projects that are available. However,
 because this is an educational series of programs, it will
 be acceptable to roll our own math library.
 
-== Include guard and includes ==
-Standard C++ include guard, and all dependencies this utility
-file will need.
--
-#ifndef UTILS_H
-#define UTILS_H
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <time.h>
-#include <GL/glew.h>
-#include <GL/freeglut.h>
--
-
 == Pi ==
 -
 static const double PI = 3.14159265358979323846;
@@ -90,15 +75,32 @@ GLuint LoadShader(const char* filename, GLenum shader_type);
 
 == Boilerplate ==
 -
-Include guard and includes.
-Pi.
-Vertex.
-Matrix.
-Identity matrix.
-Geometry forward declarations.
-Linear algebra forward declarations.
-OpenGL forward declarations.
-#endif
+#ifndef UTILS_H
+#define UTILS_H
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <time.h>
+#include <GL/glew.h>
+#include <GL/freeglut.h>
 
-== @utils.h ==
+Pi.
+
+Vertex.
+
+Matrix.
+
+Identity matrix.
+
+Geometry forward declarations.
+
+Linear algebra forward declarations.
+
+OpenGL forward declarations.
+
+#endif
+-
+
+== @utils.hpp ==
 Boilerplate.
