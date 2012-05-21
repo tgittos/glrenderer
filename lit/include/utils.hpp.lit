@@ -7,6 +7,10 @@ high quality open source projects that are available. However,
 because this is an educational series of programs, it will
 be acceptable to roll our own math library.
 
+Serious math library: http://glm.g-truc.net/
+
+This is the header for that utility file.
+
 == Pi ==
 -
 static const double PI = 3.14159265358979323846;
@@ -83,7 +87,11 @@ GLuint LoadShader(const char* filename, GLenum shader_type);
 #include <math.h>
 #include <time.h>
 #include <GL/glew.h>
+#if defined(__APPLE__) && defined(__MACH__)
+#include <GLUT/glut.h>
+#else
 #include <GL/freeglut.h>
+#endif
 
 Pi.
 
@@ -97,7 +105,7 @@ Geometry forward declarations.
 
 Linear algebra forward declarations.
 
-OpenGL forward declarations.
+OpenGL forward delcarations.
 
 #endif
 -

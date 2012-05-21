@@ -6,7 +6,8 @@ endif
 CC = g++
 CFLAGS = -Wall -g
 # Linux flags
-LDFLAGS = -Ilib -lGL -lGLU -lglut -lGLEW
+LDFLAGS = -lGL -lGLU -lglut -lGLEW
+IFLAGS = -Ilib -Iinclude
 # Override if we're in OS X
 ifeq "$(OSTYPE)" "Darwin"
 	LDFLAGS = -framework OpenGL -framework GLUT -lGLEW
@@ -14,7 +15,7 @@ endif
 # Pass compiler preprocessor variables in
 #-DFREEGLUT FREEGLUT # gcc
 #/DFREEGLUT FREEGLUT # windows
-EXECUTABLES = helloworld helloopengl chapter01 chapter02a chapter02b chapter02c chapter03a chapter03b
+EXECUTABLES = helloworld helloopengl chapter01 chapter02a chapter02b chapter02c chapter03a chapter03b chapter04
 
 .PHONY: all
 .DEFAULT: all
@@ -25,11 +26,14 @@ clean:
 	rm -Rf out
 	rm -Rf bin
 
+chapter04: utils.o chapter04.o
+	$(CC) out/utils.o out/chapter04.o $(IFLAGS) $(LDFLAGS) $(CFLAGS) -o bin/$@
+
 %: %.o
-	$(CC) out/$< $(LDFLAGS) $(CFLAGS) -o bin/$@
+	$(CC) out/$< $(IFLAGS) $(LDFLAGS) $(CFLAGS) -o bin/$@
 
 %.o: %.cpp
-	$(CC) $(CFLAGS) -c -o out/$@ src/$<
+	$(CC) $(IFLAGS) $(CFLAGS) -c -o out/$@ src/$<
 
 %.cpp:
 	mkdir -p out bin

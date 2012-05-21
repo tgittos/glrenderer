@@ -1,0 +1,310 @@
+== 3D Math Utilities ==
+In order to effectively program 3D computer graphics, we
+need a library of math utilities to help us with calculations.
+
+Normally, for a serious project you'd use one of the many,
+high quality open source projects that are available. However,
+because this is an educational series of programs, it will
+be acceptable to roll our own math library.
+
+== Geometry ==
+Although 3D math is all about linear algebra, you will still need
+some things from geometry, such as the identities and various 
+conversions.
+
+== Cotangent ==
+The inverse of a tangent.
+-
+float Cotangent(float angle)
+{
+  return (float)(1.0 / tan(angle));
+}
+-
+
+== Conversions ==
+Functions to aid in conversions between radians and degrees
+-
+float DegreesToRadians(float degrees)
+{
+  return degrees * (float)(PI / 180);
+}
+
+float RadiansToDegrees(float radians)
+{
+  return radians * (float)(180 / PI);
+}
+-
+
+== Linear algebra ==
+The meat of the math you need for 3D graphics is linear algebra. Most
+of the functions in this utility are for basic matrix operations.
+-
+Multiply matrices.
+
+Scale matrix.
+
+Translate matrix.
+
+Rotate around the x-axis.
+
+Rotate around the y-axis.
+
+Rotate around the z-axis.
+
+Create a projection matrix.
+-
+
+== Multiply matrices ==
+Take 2 matrices, and multiply them. Does it the way you would do it.
+Takes a constant pointer, so that we don't end up modifying either
+matrix passed in.
+-
+Matrix MultiplyMatrices(const Matrix* m1, const Matrix* m2)
+{
+  Matrix out = IDENTITY_MATRIX;
+  unsigned int row, column, row_offset;
+
+  for (row = 0, row_offset = row * 4; row < 4; ++row, row_offset = row * 4)
+    for (column = 0; column < 4; ++column)
+      out.m[row_offset + column] =
+        (m1->m[row_offset + 0] * m2->m[column + 0]) +
+        (m1->m[row_offset + 1] * m2->m[column + 4]) +
+        (m1->m[row_offset + 2] * m2->m[column + 8]) +
+        (m1->m[row_offset + 3] * m2->m[column + 12]);
+
+  return out;
+}
+-
+
+== Scale matrix ==
+Scales a given matrix by the amount passed in on each axis.
+Modifies the given matrix.
+Note about C++ structure dereferencing:
+the '->' operator is dereferencing a pointer. m, in this scope, is the
+matrix passed in as a parameter. 'm->m' is dereferencing the pointer m,
+and getting the value of the m property, as per the Matrix struct definition.
+The original author of the C++ code has used a confusing parameter name,
+which makes this code a little hard to read.
+-
+void ScaleMatrix(Matrix* m, float x, float y, float z)
+{
+  Matrix scale = IDENTITY_MATRIX;
+
+  scale.m[0] = x;
+  scale.m[5] = y;
+  scale.m[10] = z;
+
+  memcpy(m->m, MultiplyMatrices(m, &scale).m, sizeof(m->m));
+}
+-
+
+== Translate matrix ==
+Translates a given matrix by the amount passed in on each axis.
+Modifies the given matrix.
+-
+void TranslateMatrix(Matrix* m, float x, float y, float z)
+{
+  Matrix translation = IDENTITY_MATRIX;
+
+  translation.m[12] = x;
+  translation.m[13] = y;
+  translation.m[14] = z;
+
+  memcpy(m->m, MultiplyMatrices(m, &translation).m, sizeof(m->m));
+}
+-
+
+== Rotate around the x-axis ==
+Rotates a given matrix around the x-axis by the amount given.
+Modifies the given matrix.
+-
+void RotateAboutX(Matrix* m, float angle)
+{
+  Matrix rotation = IDENTITY_MATRIX;
+  float sine = (float)sin(angle);
+  float cosine = (float)cos(angle);
+
+  rotation.m[5] = cosine;
+  rotation.m[6] = -sine;
+  rotation.m[9] = sine;
+  rotation.m[10] = cosine;
+
+  memcpy(m->m, MultiplyMatrices(m, &rotation).m, sizeof(m->m));
+}
+-
+
+== Rotate around the y-axis ==
+Rotates a given matrix around the y-axis by the amount given.
+Modifies the given matrix.
+-
+void RotateAboutY(Matrix* m, float angle)
+{
+  Matrix rotation = IDENTITY_MATRIX;
+  float sine = (float)sin(angle);
+  float cosine = (float)cos(angle);
+
+  rotation.m[0] = cosine;
+  rotation.m[8] = sine;
+  rotation.m[2] = -sine;
+  rotation.m[10] = cosine;
+
+  memcpy(m->m, MultiplyMatrices(m, &rotation).m, sizeof(m->m));
+}
+-
+
+== Rotate around the z-axis ==
+Rotates a given matrix around the z-axis by the amount given.
+Modifies the given matrix.
+-
+void RotateAboutZ(Matrix* m, float angle)
+{
+  Matrix rotation = IDENTITY_MATRIX;
+  float sine = (float)sin(angle);
+  float cosine = (float)cos(angle);
+
+  rotation.m[0] = cosine;
+  rotation.m[1] = -sine;
+  rotation.m[4] = sine;
+  rotation.m[5] = cosine;
+
+  memcpy(m->m, MultiplyMatrices(m, &rotation).m, sizeof(m->m));
+}
+-
+
+== Create a projection matrix ==
+Creates a perspective projection matrix to project a 3D structure onto 
+a 2D viewing surface. The parameters are as follows:
+* fovy - the vertical field-of-view in radians. The angle between the top and
+  the bottom of the view frustrum.
+* aspect_ratio - the aspect ratio
+* near_plane - the distance from the eye to the near plane, where objects closer
+  to the eye than the near plane get clipped
+* far_plane - the distance from the eye to the far plane, where objects further
+  from the eye than the far plane get clipped 
+This function is very similar to gluPerspective from the OpenGL fixed function
+pipeline.
+-
+Matrix CreateProjectionMatrix(
+  float fovy,
+  float aspect_ratio,
+  float near_plane,
+  float far_plane
+)
+{
+  Matrix out = { { 0 } };
+
+  const float
+    y_scale = Cotangent(DegreesToRadians(fovy / 2)),
+    x_scale = y_scale / aspect_ratio,
+    frustum_length = far_plane - near_plane;
+
+  out.m[0] = x_scale;
+  out.m[5] = y_scale;
+  out.m[10] = -((far_plane + near_plane) / frustum_length);
+  out.m[11] = -1;
+  out.m[14] = -((2 * near_plane * far_plane) / frustum_length);
+
+  return out;
+}
+-
+
+== OpenGL utilities ==
+Following are some utilities that make working with OpenGL a little easier.
+-
+Exit on error.
+
+Load shader.
+-
+
+== Exit on error ==
+If OpenGL encounters an error, print the OpenGL error along with a custom message
+out to stderr and exit the application.
+-
+void ExitOnGLError(const char* error_message)
+{
+  const GLenum ErrorValue = glGetError();
+
+  if (ErrorValue != GL_NO_ERROR)
+  {
+    const char* APPEND_DETAIL_STRING = ": %s\n";
+    const size_t APPEND_LENGTH = strlen(APPEND_DETAIL_STRING) + 1;
+    const size_t message_length = strlen(error_message);
+    char* display_message = (char*)malloc(message_length + APPEND_LENGTH);
+
+    memcpy(display_message, error_message, message_length);
+    memcpy(&display_message[message_length], APPEND_DETAIL_STRING, APPEND_LENGTH);
+
+    fprintf(stderr, display_message, gluErrorString(ErrorValue));
+
+    free(display_message);
+    exit(EXIT_FAILURE);
+  }
+}
+-
+
+== Load shader ==
+Load and compile the shader identified by the filename passed in,
+and return the ID of the compiled shader.
+-
+GLuint LoadShader(const char* filename, GLenum shader_type)
+{
+  GLuint shader_id = 0;
+  FILE* file;
+  long file_size = -1;
+  char* glsl_source;
+
+  if (NULL != (file = fopen(filename, "rb")) &&
+    0 == fseek(file, 0, SEEK_END) &&
+    -1 != (file_size = ftell(file)))
+  {
+    rewind(file);
+
+    if (NULL != (glsl_source = (char*)malloc(file_size + 1)))
+    {
+      if (file_size == (long)fread(glsl_source, sizeof(char), file_size, file))
+      {
+        glsl_source[file_size] = '\0';
+
+        if (0 != (shader_id = glCreateShader(shader_type)))
+        {
+          const GLchar* const_glsl_source = glsl_source;
+          glShaderSource(shader_id, 1, &const_glsl_source, NULL);
+          glCompileShader(shader_id);
+          ExitOnGLError("Could not compile a shader");
+        }
+        else
+          fprintf(stderr, "ERROR: Could not create a shader.\n");
+      }
+      else
+        fprintf(stderr, "ERROR: Could not read file %s\n", filename);
+
+      free(glsl_source);
+    }
+    else
+      fprintf(stderr, "ERROR: Could not allocate %i bytes.\n", file_size);
+
+    fclose(file);
+  }
+  else
+    fprintf(stderr, "ERROR: Could not open file %s\n", filename);
+
+  return shader_id;
+}
+-
+
+== Boilerplate ==
+Putting all the code above together.
+-
+#include "utils.hpp"
+
+Cotangent.
+
+Conversions.
+
+Linear algebra.
+
+OpenGL utilities.
+-
+
+== @utils.cpp ==
+Boilerplate.

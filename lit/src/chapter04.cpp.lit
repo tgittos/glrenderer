@@ -1,0 +1,330 @@
+== Chapter 4 ==
+This is chapter 4 of the online OpenGL book: 
+http://openglbook.com/the-book/chapter-4-entering-the-third-dimension/
+
+This program will draw a rotating 3D cube to the screen, using all
+the techniques discussed in previous chapters, and some new ones,
+namely loading shaders from an external file.
+
+== Create cube ==
+-
+void CreateCube(void)
+{
+  const Vertex VERTICES[8] =
+  {
+      { { -.5f, -.5f,  .5f, 1 }, { 0, 0, 1, 1 } },
+      { { -.5f,  .5f,  .5f, 1 }, { 1, 0, 0, 1 } },
+      { {  .5f,  .5f,  .5f, 1 }, { 0, 1, 0, 1 } },
+      { {  .5f, -.5f,  .5f, 1 }, { 1, 1, 0, 1 } },
+      { { -.5f, -.5f, -.5f, 1 }, { 1, 1, 1, 1 } },
+      { { -.5f,  .5f, -.5f, 1 }, { 1, 0, 0, 1 } },
+      { {  .5f,  .5f, -.5f, 1 }, { 1, 0, 1, 1 } },
+      { {  .5f, -.5f, -.5f, 1 }, { 0, 0, 1, 1 } }
+  };
+
+  const GLuint INDICES[36] =
+  {
+      0,2,1,  0,3,2,
+      4,3,0,  4,7,3,
+      4,1,5,  4,0,1,
+      3,6,2,  3,7,6,
+      1,6,5,  1,2,6,
+      7,5,6,  7,4,5
+  };
+
+  ShaderIds[0] = glCreateProgram();
+  ExitOnGLError("ERROR: Could not create the shader program");
+
+  ShaderIds[1] = LoadShader("shaders/SimpleShader.fragment.glsl", GL_FRAGMENT_SHADER);
+  ShaderIds[2] = LoadShader("shaders/SimpleShader.vertex.glsl", GL_VERTEX_SHADER);
+  glAttachShader(ShaderIds[0], ShaderIds[1]);
+  glAttachShader(ShaderIds[0], ShaderIds[2]);
+   
+  glLinkProgram(ShaderIds[0]);
+  ExitOnGLError("ERROR: Could not link the shader program");
+
+  ModelMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ModelMatrix");
+  ViewMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ViewMatrix");
+  ProjectionMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ProjectionMatrix");
+  ExitOnGLError("ERROR: Could not get the shader uniform locations");
+
+  glGenVertexArrays(1, &BufferIds[0]);
+  ExitOnGLError("ERROR: Could not generate the VAO");
+  glBindVertexArray(BufferIds[0]);
+  ExitOnGLError("ERROR: Could not bind the VAO");
+
+  glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
+  ExitOnGLError("ERROR: Could not enable vertex attributes");
+
+  glBindBuffer(GL_ARRAY_BUFFER, BufferIds[1]);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
+  ExitOnGLError("ERROR: Could not bind the VBO to the VAO");
+   
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(VERTICES[0]), (GLvoid*)0);
+  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VERTICES[0]), (GLvoid*)sizeof(VERTICES[0].Position));
+  ExitOnGLError("ERROR: Could not set VAO attributes");
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, BufferIds[2]);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(INDICES), INDICES, GL_STATIC_DRAW);
+  ExitOnGLError("ERROR: Could not bind the IBO to the VAO");
+   
+  glBindVertexArray(0);
+}
+-
+
+== Draw cube ==
+-
+void DrawCube(void)
+{
+  float CubeAngle;
+  clock_t Now = clock();
+  if (LastTime == 0)
+      LastTime = Now;
+   
+  CubeRotation += 45.0f * ((float)(Now - LastTime) / CLOCKS_PER_SEC);
+  CubeAngle = DegreesToRadians(CubeRotation);
+  LastTime = Now;
+
+  ModelMatrix = IDENTITY_MATRIX;
+  RotateAboutY(&ModelMatrix, CubeAngle);
+  RotateAboutX(&ModelMatrix, CubeAngle);
+
+  glUseProgram(ShaderIds[0]);
+  ExitOnGLError("ERROR: Could not use the shader program");
+   
+  glUniformMatrix4fv(ModelMatrixUniformLocation, 1, GL_FALSE, ModelMatrix.m);
+  glUniformMatrix4fv(ViewMatrixUniformLocation, 1, GL_FALSE, ViewMatrix.m);
+  ExitOnGLError("ERROR: Could not set the shader uniforms");
+
+  glBindVertexArray(BufferIds[0]);
+  ExitOnGLError("ERROR: Could not bind the VAO for drawing purposes");
+   
+  glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLvoid*)0);
+  ExitOnGLError("ERROR: Could not draw the cube");
+   
+  glBindVertexArray(0);
+  glUseProgram(0);
+}
+-
+
+== Destroy cube ==
+-
+void DestroyCube(void)
+{
+    glDetachShader(ShaderIds[0], ShaderIds[1]);
+    glDetachShader(ShaderIds[0], ShaderIds[2]);
+    glDeleteShader(ShaderIds[1]);
+    glDeleteShader(ShaderIds[2]);
+    glDeleteProgram(ShaderIds[0]);
+    ExitOnGLError("ERROR: Could not destroy the shaders");
+ 
+    glDeleteBuffers(2, &BufferIds[1]);
+    glDeleteVertexArrays(1, &BufferIds[0]);
+    ExitOnGLError("ERROR: Could not destroy the buffer objects");
+}
+-
+
+== Cube functions ==
+-
+Create cube.
+
+Draw cube.
+
+Destroy cube.
+-
+
+== Render event handler ==
+
+-
+void RenderFunction(void)
+{
+  FPS meter increment during render.
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  DrawCube();
+
+  glutSwapBuffers();
+  glutPostRedisplay();
+}
+-
+
+== Resize event handler ==
+
+-
+void ResizeFunction(int Width, int Height)
+{
+  CurrentWidth = Width;
+  CurrentHeight = Height;
+  glViewport(0, 0, CurrentWidth, CurrentHeight);
+  ProjectionMatrix =
+    CreateProjectionMatrix(
+        60,
+        (float)CurrentWidth / CurrentHeight,
+        1.0f,
+        100.0f
+    );
+   
+  glUseProgram(ShaderIds[0]);
+  glUniformMatrix4fv(ProjectionMatrixUniformLocation, 1, GL_FALSE, ProjectionMatrix.m);
+  glUseProgram(0);
+}
+-
+
+== 3D cube event handlers ==
+This calls the DestroyCube function when GLUT is closing.
+This is only included when using freeglut.
+When not using freeglut, the VBO and shaders will probably
+leak.
+-
+#if defined(FREEGLUT)
+  glutCloseFunc(DestroyCube);
+#endif
+-
+
+== Set function callbacks ==
+Add 3D cube event handlers
+-
+glutReshapeFunc(ResizeFunction);
+glutDisplayFunc(RenderFunction);
+FPS meter event handlers.
+3D cube event handlers.
+-
+
+== 3D cube initialization ==
+-
+glEnable(GL_DEPTH_TEST);
+glDepthFunc(GL_LESS);
+ExitOnGLError("ERROR: Could not set OpenGL depth testing options");
+ 
+glEnable(GL_CULL_FACE);
+glCullFace(GL_BACK);
+glFrontFace(GL_CCW);
+ExitOnGLError("ERROR: Could not set OpenGL culling options");
+ 
+ModelMatrix = IDENTITY_MATRIX;
+ProjectionMatrix = IDENTITY_MATRIX;
+ViewMatrix = IDENTITY_MATRIX;
+TranslateMatrix(&ViewMatrix, 0, 0, -2);
+ 
+CreateCube();
+-
+
+== Initialize ==
+Clear out the errors from GLEW initialization and add a literati hook
+for 3D cube initialization.
+-
+void Initialize(int argc, char* argv[])
+{
+  InitWindow(argc, argv);
+
+  glewExperimental = GL_TRUE;
+  GLEW initialization.
+
+  fprintf(
+    stdout,
+    "INFO: OpenGL Version: %s\n",
+    glGetString(GL_VERSION)
+  );
+
+  glGetError();
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+  3D cube initialization.
+}
+-
+
+== 3D cube globals ==
+-
+GLuint
+    ProjectionMatrixUniformLocation,
+    ViewMatrixUniformLocation,
+    ModelMatrixUniformLocation,
+    BufferIds[3] = { 0 },
+    ShaderIds[3] = { 0 };
+Matrix
+    ProjectionMatrix,
+    ViewMatrix,
+    ModelMatrix;
+float CubeRotation = 0;
+clock_t LastTime = 0;
+-
+
+== Global variables ==
+-
+int CurrentWidth = 800,
+  CurrentHeight = 600,
+  WindowHandle = 0;
+FPS meter global.
+3D cube globals.
+-
+
+== 3D cube forward declarations ==
+-
+void CreateCube(void);
+void DestroyCube(void);
+void DrawCube(void);
+-
+
+== Forward declarations ==
+-
+void Initialize(int, char*[]);
+void InitWindow(int, char*[]);
+void ResizeFunction(int, int);
+void RenderFunction(void);
+FPS meter forward declarations.
+3D cube forward declarations.
+-
+
+== Preprocessor variables ==
+Update the chapter number.
+-
+#define WINDOW_TITLE_PREFIX "Chapter 4"
+-
+
+== OpenGL includes ==
+Since we include all of these dependencies in the utils.hpp file,
+just include that instead.
+-
+#include "utils.hpp"
+-
+
+== Boilerplate ==
+Boilerplate code that puts together the above functionality
+and has a main loop, which inits the window, starts the
+GLUT loop and then quits once the loop exits.
+-
+Standard includes.
+OpenGL includes.
+Preprocessor variables.
+
+Global variables.
+
+Forward declarations.
+
+int main(int argc, char* argv[])
+{
+  Initialize(argc, argv);
+
+  Start GLUT loop.
+
+  exit(EXIT_SUCCESS);
+}
+
+Initialize.
+
+Window initialization function.
+
+Resize event handler.
+
+Render event handler.
+
+FPS meter idle function.
+
+FPS meter timer function.
+
+Cube functions.
+-
+
+== @chapter04.cpp ==
+@inherit chapter01.cpp.lit
+Boilerplate.

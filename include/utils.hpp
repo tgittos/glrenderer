@@ -6,7 +6,11 @@
 #include <math.h>
 #include <time.h>
 #include <GL/glew.h>
+#if defined(__APPLE__) && defined(__MACH__)
+#include <GLUT/glut.h>
+#else
 #include <GL/freeglut.h>
+#endif
 
 static const double PI = 3.14159265358979323846;
 
@@ -46,6 +50,7 @@ Matrix CreateProjectionMatrix(
   float far_plane
 );
 
-OpenGL forward declarations.
+void ExitOnGLError(const char* error_message);
+GLuint LoadShader(const char* filename, GLenum shader_type);
 
 #endif
