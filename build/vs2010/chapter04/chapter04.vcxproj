@@ -11,12 +11,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\chapter02c.cpp" />
+    <ClCompile Include="..\..\..\src\chapter04.cpp" />
+    <ClCompile Include="..\..\..\src\utils.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{25802C81-C9D4-4538-8875-F61B97D7B520}</ProjectGuid>
+    <ProjectGuid>{EC401175-A525-4E31-8B1B-C0E15DAC2C56}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>chapter02c</RootNamespace>
+    <RootNamespace>chapter04</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -54,7 +55,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Programming\Libraries\glew-1.7.0\include;C:\Programming\Libraries\freeglut-2.8.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Programming\Libraries\glew-1.7.0\include;C:\Programming\Projects\glrenderer\include;C:\Programming\Libraries\freeglut-2.8.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -80,6 +81,13 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\include\utils.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\shaders\SimpleShader.fragment.glsl" />
+    <None Include="..\..\..\shaders\SimpleShader.vertex.glsl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

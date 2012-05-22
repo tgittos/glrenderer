@@ -1,6 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include "utils.hpp"
 #define WINDOW_TITLE_PREFIX "Chapter 4"
 
@@ -224,6 +221,9 @@ void CreateCube(void)
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   ExitOnGLError("ERROR: Could not enable vertex attributes");
+
+  glGenBuffers(2, &BufferIds[1]);
+  ExitOnGLError("ERROR: Could not generate the buffer objects");
 
   glBindBuffer(GL_ARRAY_BUFFER, BufferIds[1]);
   glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
