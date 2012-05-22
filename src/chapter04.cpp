@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "utils.hpp"
 #define WINDOW_TITLE_PREFIX "Chapter 4"
 

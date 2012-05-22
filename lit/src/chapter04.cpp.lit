@@ -6,6 +6,98 @@ This program will draw a rotating 3D cube to the screen, using all
 the techniques discussed in previous chapters, and some new ones,
 namely loading shaders from an external file.
 
+== Moving to 3D ==
+The most obvious change we're making in this chapter is the transition from
+2D into 3D. This introduces a lot of new functionality and math, most of
+which is abstracted into a helper, called util.cpp and util.hpp. There are
+literati versions of these files that have ample documentation as to what
+they do.
+
+Here, I'm going to assume you know a fair bit about 3D graphics theory,
+things like affine transformations, co-ordinate systems, projection and
+texturing. If not, a good place to start would be the Harvard Extension
+School course "CSCI E-234 Intro to Computer Graphics and GPU Programming":http://itunes.apple.com/us/itunes-u/csci-e-234-introduction-to/id428958018
+
+Another source I recommend is the following:
+http://duriansoftware.com/joe/An-intro-to-modern-OpenGL.-Chapter-1:-The-Graphics-Pipeline.html
+This covers the basics of how OpenGL and GPU's work. A lot of this should
+have been picked up from the lessons to date, however if you need a refresher
+or a nice summary, that will do the job nicely.
+
+First, lets talk a bit more about shaders.
+
+== Shaders and uniforms ==
+In the previous sections, we have simply sent in data about each vertex to
+the GPU, and done all the processing on the CPU. This is ignoring a huge
+benefit of the GPU, in that it's very good at these kinds of calculations.
+Ideally, we would push as much math and calculating of vertex data onto the
+GPU as we can. That's what we attempt to do in this section.
+
+As said previously, you can pass data into your shaders from the OpenGL
+program. So far, the only data we have sent in is per vertex data, notably
+the vertex position and colour attributes. We can also send down global
+variables that are constant for all vertices. These are called uniforms.
+
+Uniforms allow us to set data for a drawing pass, and not have to change it
+for each vertex. Each vertex will have access to the same uniforms, until
+they are changed.
+
+Uniforms can be any GLSL datatype. In our example, in the shader files, we
+are using mat4 data types, which are 4x4 matrices.
+
+== Retrieving uniform locations ==
+Due to the nature of how GPUs work, in order to pass this data to the GPU,
+we need to buffer the data directly into it's memory. To do that, we need
+to know where the shader program is expecting to find the data for each
+uniform.
+
+We can do that with the glGetUniformLocation method. The parameters to this
+function are as follows:
+* program - the identifier of the program
+* name - the name of the uniform we want to find, as declared in the GLSL
+  shader
+
+This function will return an integer uniform location, which we then store.
+-
+ModelMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ModelMatrix");
+ViewMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ViewMatrix");
+ProjectionMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ProjectionMatrix");
+ExitOnGLError("ERROR: Could not get the shader uniform locations");
+-
+
+== Setting uniform data ==
+Once we have found the uniform locations, we can buffer data into the GPU.
+OpenGL provides a family of functions to do so, one function for each different
+data type. All functions begin with the prefix glUniform.
+
+Because our uniforms are of the mat4 type, we're going to use glUniformMatrix4fv
+to push floating point data to the mat4 uniforms.
+
+The arguments for glUniformMatrix4fv are as follows:
+* location - the location of the uniform to push data into, as retrieved from
+  glGetUniformLocation
+* count - the number of matrices to pass. We can pass an array of matrices.
+* transpose - if the matrix is in row major order (which ours aren't), then they
+  will need to be transposed first, to column major order. This parameter tells
+  the GPU if this needs to be done.
+* value - the location in memory of the first element of the array that represents
+  a matrix
+
+A matrix in OpenGL is represented by an array of 16 floating point numbers. OpenGL
+will convert the array to the format the GPU is expecting.
+
+In this program, we store the cube's local transformations in the ModelMatrix, the
+camera/eye transormations in the ViewMatrix and the ProjectionMatrix holds the
+perspective projection matrix. These variables all need to be sent to the GPU.
+
+Because the ProjectionMatrix won't change unless the screen size changes, we
+send that data to the GPU in a separate place.
+-
+glUniformMatrix4fv(ModelMatrixUniformLocation, 1, GL_FALSE, ModelMatrix.m);
+glUniformMatrix4fv(ViewMatrixUniformLocation, 1, GL_FALSE, ViewMatrix.m);
+ExitOnGLError("ERROR: Could not set the shader uniforms");
+-
+
 == Create cube ==
 -
 void CreateCube(void)
@@ -43,10 +135,7 @@ void CreateCube(void)
   glLinkProgram(ShaderIds[0]);
   ExitOnGLError("ERROR: Could not link the shader program");
 
-  ModelMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ModelMatrix");
-  ViewMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ViewMatrix");
-  ProjectionMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ProjectionMatrix");
-  ExitOnGLError("ERROR: Could not get the shader uniform locations");
+  Retrieving uniform locations.
 
   glGenVertexArrays(1, &BufferIds[0]);
   ExitOnGLError("ERROR: Could not generate the VAO");
@@ -96,9 +185,7 @@ void DrawCube(void)
   glUseProgram(ShaderIds[0]);
   ExitOnGLError("ERROR: Could not use the shader program");
    
-  glUniformMatrix4fv(ModelMatrixUniformLocation, 1, GL_FALSE, ModelMatrix.m);
-  glUniformMatrix4fv(ViewMatrixUniformLocation, 1, GL_FALSE, ViewMatrix.m);
-  ExitOnGLError("ERROR: Could not set the shader uniforms");
+  Setting uniform data.
 
   glBindVertexArray(BufferIds[0]);
   ExitOnGLError("ERROR: Could not bind the VAO for drawing purposes");
