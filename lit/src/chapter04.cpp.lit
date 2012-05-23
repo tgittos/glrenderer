@@ -98,7 +98,97 @@ glUniformMatrix4fv(ViewMatrixUniformLocation, 1, GL_FALSE, ViewMatrix.m);
 ExitOnGLError("ERROR: Could not set the shader uniforms");
 -
 
+== 3D cube initialization ==
+We have made significant changes to the way we initialize a new window for this
+chapter. We will outline the high level changes here, and then get into the
+details of each change.
+-
+Enable depth testing. 
+
+Enable culling.
+ 
+Initialize matrices.
+ 
+CreateCube();
+-
+
+== Enable depth testing ==
+First, because we're dealing with 3D elements now, we want the GPU to do depth
+comparisons when drawing fragments after rasterization. This will prevent
+fragments that are further away from the camera from overlapping those that are
+closer to the camera, but may have been drawn earlier.
+
+We do this by enabling the GL_DEPTH_TEST flag, and telling OpenGL how the comparison
+works, by using GL_LESS.
+
+glDepthFunc can take the following enumerations:
+* GL_NEVER: a fragment never passes the depth test.
+* GL_LESS: a fragment passes when its depth value is less (closer to the camera) 
+  than the fragment currently stored in the depth buffer. We use this enumeration in 
+  our program.
+* GL_EQUAL: a fragment passes the depth test when its depth value is equal to the one 
+  currently stored in the depth buffer.
+* GL_LEQUAL: a fragment passes the depth test when its depth value is less or equal 
+  to the one currently stored in the depth buffer.
+* GL_GREATER: the opposite of GL_LESS.
+* GL_NOTEQUAL: the opposite of GL_EQUAL.
+* GL_GEQUAL: a fragment passes the depth test when its depth value is greater or 
+  equal to the one currently stored in the depth buffer.
+* GL_ALWAYS: the opposite of GL_NEVER.
+-
+glEnable(GL_DEPTH_TEST);
+glDepthFunc(GL_LESS);
+ExitOnGLError("ERROR: Could not set OpenGL depth testing options");
+-
+
+== Enable culling ==
+Up until now, it didn't matter which order we draw the vertices in, as we were
+always drawing every vertex. However, when drawing convex 3D objects, rendering
+any polygons inside convex shapes, or behind polygons is a waste of compute time, 
+as they will never be seen.
+
+To prevent OpenGL from drawing polygons that will never be seen, we can enable
+polygon culling.
+
+When we turn culling on, we need to tell it how to cull. Options for glCullFace
+are as follows:
+* GL_FRONT: Cull the front face of a polygon
+* GL_BACK: Cull the back face of a polygon
+* GL_FRONT_AND_BACK: Cull both faces of the polygon
+
+In order to tell OpenGL which face is the front face, and which is the back, we
+need to specify the winding of polygons. This tells us the direction we intend
+to draw each polygon in, starting from the first vertex until the last. 
+Here, we enable counter-clockwise winding. The alternative is GL_CW, which is
+clockwise winding. This essentially just changes the order in which our vertices
+need to be specified. Getting this wrong will cause weird things to happen
+depending on your culling. If you're finding a model looks like a hollow cross
+section, chances are you have the winding back to front.
+
+If culling is set to GL_FRONT_AND_BACK, no faces will be drawn, however lines
+and points will be drawn.
+-
+glEnable(GL_CULL_FACE);
+glCullFace(GL_BACK);
+glFrontFace(GL_CCW);
+ExitOnGLError("ERROR: Could not set OpenGL culling options");
+-
+
+== Initialize matrices ==
+Initialize the matrices by loading them with the identity matrix.
+Pull the camera further back in the scene by translating it along the negative
+z-axis, so we're not looking inside the cube when it's drawn.
+-
+ModelMatrix = IDENTITY_MATRIX;
+ProjectionMatrix = IDENTITY_MATRIX;
+ViewMatrix = IDENTITY_MATRIX;
+TranslateMatrix(&ViewMatrix, 0, 0, -2);
+-
+
 == Create cube ==
+The cube creation code is very similar to the triangle creation code used in
+chapter 03b, with the only difference being loading the shader from an
+external file instead of declaring it inline.
 -
 void CreateCube(void)
 {
@@ -127,13 +217,7 @@ void CreateCube(void)
   ShaderIds[0] = glCreateProgram();
   ExitOnGLError("ERROR: Could not create the shader program");
 
-  ShaderIds[1] = LoadShader("shaders/SimpleShader.fragment.glsl", GL_FRAGMENT_SHADER);
-  ShaderIds[2] = LoadShader("shaders/SimpleShader.vertex.glsl", GL_VERTEX_SHADER);
-  glAttachShader(ShaderIds[0], ShaderIds[1]);
-  glAttachShader(ShaderIds[0], ShaderIds[2]);
-   
-  glLinkProgram(ShaderIds[0]);
-  ExitOnGLError("ERROR: Could not link the shader program");
+  Load shaders.
 
   Retrieving uniform locations.
 
@@ -165,7 +249,40 @@ void CreateCube(void)
 }
 -
 
+== Load shaders ==
+While the heavy lifting of opening the shader file, reading the data and
+compiling the shader is handled in the utils.cpp file, we still need to
+attach the shaders to the shader program and link it
+-
+ShaderIds[1] = LoadShader("shaders/SimpleShader.fragment.glsl", GL_FRAGMENT_SHADER);
+ShaderIds[2] = LoadShader("shaders/SimpleShader.vertex.glsl", GL_VERTEX_SHADER);
+glAttachShader(ShaderIds[0], ShaderIds[1]);
+glAttachShader(ShaderIds[0], ShaderIds[2]);
+
+glLinkProgram(ShaderIds[0]);
+ExitOnGLError("ERROR: Could not link the shader program");
+-
+
 == Draw cube ==
+Now that we have the data structures holding vertex data created, the
+shaders loaded, the uniform locations of the shaders found, it's time to
+send some data to the GPU and get to drawing.
+
+There are a few subtle changes to the way we draw the object vs. earlier
+chapters, so we will step through the method. Remember, this function is
+called once per application tick, so is one complete render of the cube.
+
+Much of the code below handles rotating the cube. The rotation of the cube
+is a function of time, where it spins 45 degrees per second. We log the last
+time we calculated the rotation, and the difference, and determine how
+many degrees it has turned since then, and add it to the rotation.
+
+We then rotate the model matrix around the x and y axis by this amount,
+which will affect the cube's rotation in the vertex shader.
+
+We then enable the shader program, and bind the VAOs and draw the elements.
+Once we've finished the draw, we unbind the VAOs and unbind the shader
+program.
 -
 void DrawCube(void)
 {
@@ -198,7 +315,37 @@ void DrawCube(void)
 }
 -
 
+== Resize event handler ==
+The last significant piece of information is the recalculation of the
+projection matrix when the screen is resized.
+
+Because the projection matrix is calculated dependent on the display
+ratio of the window, when that changes, we need to recalculate the
+projection matrix and update the uniform in the shader program with the
+new data.
+-
+void ResizeFunction(int Width, int Height)
+{
+  CurrentWidth = Width;
+  CurrentHeight = Height;
+  glViewport(0, 0, CurrentWidth, CurrentHeight);
+  ProjectionMatrix =
+    CreateProjectionMatrix(
+        60,
+        (float)CurrentWidth / CurrentHeight,
+        1.0f,
+        100.0f
+    );
+   
+  glUseProgram(ShaderIds[0]);
+  glUniformMatrix4fv(ProjectionMatrixUniformLocation, 1, GL_FALSE, ProjectionMatrix.m);
+  glUseProgram(0);
+}
+-
+
 == Destroy cube ==
+The standard destruction code that is similar to the triangle destroy
+function.
 -
 void DestroyCube(void)
 {
@@ -225,7 +372,7 @@ Destroy cube.
 -
 
 == Render event handler ==
-
+Add a hook in to draw our cube on tick.
 -
 void RenderFunction(void)
 {
@@ -235,28 +382,6 @@ void RenderFunction(void)
 
   glutSwapBuffers();
   glutPostRedisplay();
-}
--
-
-== Resize event handler ==
-
--
-void ResizeFunction(int Width, int Height)
-{
-  CurrentWidth = Width;
-  CurrentHeight = Height;
-  glViewport(0, 0, CurrentWidth, CurrentHeight);
-  ProjectionMatrix =
-    CreateProjectionMatrix(
-        60,
-        (float)CurrentWidth / CurrentHeight,
-        1.0f,
-        100.0f
-    );
-   
-  glUseProgram(ShaderIds[0]);
-  glUniformMatrix4fv(ProjectionMatrixUniformLocation, 1, GL_FALSE, ProjectionMatrix.m);
-  glUseProgram(0);
 }
 -
 
@@ -278,25 +403,6 @@ glutReshapeFunc(ResizeFunction);
 glutDisplayFunc(RenderFunction);
 FPS meter event handlers.
 3D cube event handlers.
--
-
-== 3D cube initialization ==
--
-glEnable(GL_DEPTH_TEST);
-glDepthFunc(GL_LESS);
-ExitOnGLError("ERROR: Could not set OpenGL depth testing options");
- 
-glEnable(GL_CULL_FACE);
-glCullFace(GL_BACK);
-glFrontFace(GL_CCW);
-ExitOnGLError("ERROR: Could not set OpenGL culling options");
- 
-ModelMatrix = IDENTITY_MATRIX;
-ProjectionMatrix = IDENTITY_MATRIX;
-ViewMatrix = IDENTITY_MATRIX;
-TranslateMatrix(&ViewMatrix, 0, 0, -2);
- 
-CreateCube();
 -
 
 == Initialize ==

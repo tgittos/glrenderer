@@ -207,7 +207,7 @@ void CreateCube(void)
   ShaderIds[2] = LoadShader("shaders/SimpleShader.vertex.glsl", GL_VERTEX_SHADER);
   glAttachShader(ShaderIds[0], ShaderIds[1]);
   glAttachShader(ShaderIds[0], ShaderIds[2]);
-
+  
   glLinkProgram(ShaderIds[0]);
   ExitOnGLError("ERROR: Could not link the shader program");
 

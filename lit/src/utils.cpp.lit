@@ -245,6 +245,10 @@ void ExitOnGLError(const char* error_message)
 == Load shader ==
 Load and compile the shader identified by the filename passed in,
 and return the ID of the compiled shader.
+Note we specify the type of shader required. We are using
+GL_FRAGMENT_SHADER and GL_VERTEX_SHADER, and newer versions of
+OpenGL also support GL_GEOMETRY_SHADER, however this tutorial
+does not cover that.
 -
 GLuint LoadShader(const char* filename, GLenum shader_type)
 {
