@@ -11,12 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\chapter03b.cpp" />
+    <ClCompile Include="..\..\..\src\customdatastruct.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{86DA9672-1CA7-4A24-B18B-4B03903080AB}</ProjectGuid>
+    <ProjectGuid>{25802C81-C9D4-4538-8875-F61B97D7B520}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>chapter03b</RootNamespace>
+    <RootNamespace>customdatastruct</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

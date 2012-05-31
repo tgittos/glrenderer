@@ -11,12 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\chapter02a.cpp" />
+    <ClCompile Include="..\..\..\src\swapibo.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5B716DE0-AAB7-4EC8-850D-B0A3F69BDC40}</ProjectGuid>
+    <ProjectGuid>{86DA9672-1CA7-4A24-B18B-4B03903080AB}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>chapter02a</RootNamespace>
+    <RootNamespace>swapibo</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

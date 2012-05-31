@@ -11,12 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\chapter02b.cpp" />
+    <ClCompile Include="..\..\..\src\triangle.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E132D11D-06A7-4230-8B7C-A6A54DCBB09E}</ProjectGuid>
+    <ProjectGuid>{5B716DE0-AAB7-4EC8-850D-B0A3F69BDC40}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>chapter02b</RootNamespace>
+    <RootNamespace>triangle</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

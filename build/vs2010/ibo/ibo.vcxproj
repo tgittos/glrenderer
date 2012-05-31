@@ -11,12 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\chapter03a.cpp" />
+    <ClCompile Include="..\..\..\src\ibo.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E487E244-1272-476A-B6CE-56302C6830D5}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>chapter03a</RootNamespace>
+    <RootNamespace>ibo</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

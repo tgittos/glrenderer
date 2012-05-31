@@ -11,13 +11,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\chapter04.cpp" />
+    <ClCompile Include="..\..\..\src\3d.cpp" />
     <ClCompile Include="..\..\..\src\utils.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EC401175-A525-4E31-8B1B-C0E15DAC2C56}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>chapter04</RootNamespace>
+    <RootNamespace>3d</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

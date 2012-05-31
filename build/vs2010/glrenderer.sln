@@ -1,17 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chapter02a", "chapter02a\chapter02a.vcxproj", "{5B716DE0-AAB7-4EC8-850D-B0A3F69BDC40}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "triangle", "triangle\triangle.vcxproj", "{5B716DE0-AAB7-4EC8-850D-B0A3F69BDC40}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chapter02b", "chapter02b\chapter02b.vcxproj", "{E132D11D-06A7-4230-8B7C-A6A54DCBB09E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rectangle", "rectangle\rectangle.vcxproj", "{E132D11D-06A7-4230-8B7C-A6A54DCBB09E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chapter02c", "chapter02c\chapter02c.vcxproj", "{25802C81-C9D4-4538-8875-F61B97D7B520}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "customdatastruct", "customdatastruct\customdatastruct.vcxproj", "{25802C81-C9D4-4538-8875-F61B97D7B520}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chapter03a", "chapter03a\chapter03a.vcxproj", "{E487E244-1272-476A-B6CE-56302C6830D5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ibo", "ibo\ibo.vcxproj", "{E487E244-1272-476A-B6CE-56302C6830D5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chapter03b", "chapter03b\chapter03b.vcxproj", "{86DA9672-1CA7-4A24-B18B-4B03903080AB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "swapibo", "swapibo\swapibo.vcxproj", "{86DA9672-1CA7-4A24-B18B-4B03903080AB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chapter04", "chapter04\chapter04.vcxproj", "{EC401175-A525-4E31-8B1B-C0E15DAC2C56}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "3d", "3d\3d.vcxproj", "{EC401175-A525-4E31-8B1B-C0E15DAC2C56}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
