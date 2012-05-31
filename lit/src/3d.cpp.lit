@@ -521,6 +521,6 @@ FPS meter timer function.
 Cube functions.
 -
 
-== @chapter04.cpp ==
-@inherit chapter01.cpp.lit
+== @3d.cpp ==
+@inherit blankwindow.cpp.lit
 Boilerplate.

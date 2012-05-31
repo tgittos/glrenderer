@@ -306,6 +306,6 @@ Shader destruction function.
 Keyboard dispatcher.
 -
 
-== @chapter03b.cpp ==
-@inherit chapter03a.cpp.lit
+== @swapibo.cpp ==
+@inherit ibo.cpp.lit
 Boilerplate.

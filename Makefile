@@ -15,7 +15,7 @@ endif
 # Pass compiler preprocessor variables in
 #-DFREEGLUT FREEGLUT # gcc
 #/DFREEGLUT FREEGLUT # windows
-EXECUTABLES = helloworld helloopengl chapter01 chapter02a chapter02b chapter02c chapter03a chapter03b chapter04
+EXECUTABLES = helloworld helloopengl blankwindow triangle rectangle customdatastruct ibo swapibo 3d
 
 .PHONY: all
 .DEFAULT: all
@@ -26,8 +26,8 @@ clean:
 	rm -Rf out
 	rm -Rf bin
 
-chapter04: utils.o chapter04.o
-	$(CC) out/utils.o out/chapter04.o $(IFLAGS) $(LDFLAGS) $(CFLAGS) -o bin/$@
+3d: utils.o 3d.o
+	$(CC) out/utils.o out/3d.o $(IFLAGS) $(LDFLAGS) $(CFLAGS) -o bin/$@
 
 %: %.o
 	$(CC) out/$< $(IFLAGS) $(LDFLAGS) $(CFLAGS) -o bin/$@

@@ -264,6 +264,6 @@ void RenderFunction(void)
 }
 -
 
-== @chapter03a.cpp ==
-@inherit chapter02c.cpp.lit
+== @ibo.cpp ==
+@inherit customdatastruct.cpp.lit
 Boilerplate.

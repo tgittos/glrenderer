@@ -6,6 +6,12 @@ This program will open a window with an OpenGL context, and
 draw a triangle to the screen using a vertex buffer object
 (VBO)
 
+See 
+http://arcsynthesis.org/gltut/Basics/Tut01%20Following%20the%20Data.html
+http://arcsynthesis.org/gltut/Basics/Tut02%20Vertex%20Attributes.html
+for details on shaders and pushing data to them
+and diagrams that might be useful
+
 == Set function callbacks ==
 Include the event handlers required for rendering.
 -
@@ -619,6 +625,6 @@ Shader setup function.
 Shader destruction function.
 -
 
-== @chapter02a.cpp ==
-@inherit chapter01.cpp.lit
+== @triangle.cpp ==
+@inherit blankwindow.cpp.lit
 Boilerplate.

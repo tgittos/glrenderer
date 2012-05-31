@@ -95,6 +95,6 @@ void RenderFunction(void)
 }
 -
 
-== @chapter02b.cpp ==
-@inherit chapter02a.cpp.lit
+== @rectangle.cpp ==
+@inherit triangle.cpp.lit
 Boilerplate.

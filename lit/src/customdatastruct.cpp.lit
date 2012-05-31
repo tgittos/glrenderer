@@ -134,6 +134,6 @@ void DestroyVBO(void)
 }
 -
 
-== @chapter02c.cpp ==
-@inherit chapter02b.cpp.lit
+== @customdatastruct.cpp ==
+@inherit rectangle.cpp.lit
 Boilerplate.
